@@ -1,0 +1,71 @@
+.level-selector {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.level-selector__btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--bg-glass-border);
+  background: var(--bg-glass);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.level-selector__btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.level-selector__btn--active {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.level-selector__btn--elementary.level-selector__btn--active {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: var(--level-elementary);
+  color: var(--level-elementary);
+}
+
+.level-selector__btn--middle-school.level-selector__btn--active {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--level-middle);
+  color: var(--level-middle);
+}
+
+.level-selector__btn--high-school.level-selector__btn--active {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: var(--level-high);
+  color: var(--level-high);
+}
+
+.level-selector__btn--university.level-selector__btn--active {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--level-university);
+  color: var(--level-university);
+}
+
+.level-selector__icon {
+  font-size: var(--fs-base);
+}
+
+@media (max-width: 768px) {
+  .level-selector__btn {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--fs-xs);
+  }
+  .level-selector__label {
+    display: none;
+  }
+  .level-selector__icon {
+    font-size: var(--fs-lg);
+  }
+}
