@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Browse from './pages/Browse';
 import EquationDetail from './pages/EquationDetail';
 import Practice from './pages/Practice';
+import GraphExplorer from './pages/GraphExplorer';
 
 /**
  * Root application component.
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/browse" element={<Browse />} />
         <Route path="/equation/:id" element={<EquationDetail />} />
+        <Route path="/graph" element={<GraphExplorer />} />
         <Route path="/practice" element={<Practice />} />
       </Routes>
     </>

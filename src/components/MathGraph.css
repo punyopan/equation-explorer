@@ -1,0 +1,48 @@
+.math-graph-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #0f172a; /* Slate 900 */
+  border-radius: 12px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+}
+
+.math-graph-container:active {
+  cursor: grabbing;
+}
+
+.math-graph-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.math-graph-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.graph-btn {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.graph-btn:hover {
+  background: rgba(59, 130, 246, 0.8); /* Accent blue */
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: translateY(-1px);
+}

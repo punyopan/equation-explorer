@@ -16,9 +16,11 @@ import MassEnergySimulation from './MassEnergySimulation';
 import PythagoreanSimulation from './PythagoreanSimulation';
 import QuadraticSimulation from './QuadraticSimulation';
 import SineWaveSimulation from './SineWaveSimulation';
+import GenericSimulation from './GenericSimulation';
 
 /** @type {Record<string, React.ComponentType>} */
 const SIMULATION_MAP = {
+  generic: GenericSimulation,
   force: ForceSimulation,
   velocity: VelocitySimulation,
   'ohms-law': OhmsLawSimulation,

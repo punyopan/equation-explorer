@@ -299,14 +299,31 @@ ol {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* --- KaTeX overrides for dark theme --- */
+/* --- KaTeX overrides for dark theme — premium math typography --- */
 .katex {
   color: var(--text-primary) !important;
-  font-size: 1.1em;
+  font-size: 1.35em;
+  letter-spacing: 0.01em;
 }
 
 .katex-display {
-  margin: var(--space-4) 0;
+  margin: var(--space-6) 0;
+}
+
+/* Give fraction lines and operators a subtle accent tint */
+.katex .mfrac .frac-line {
+  border-color: var(--accent-primary) !important;
+}
+
+.katex .mord.mathnormal {
+  color: #e2e8f0 !important;
+}
+
+/* Slight glow on display-mode equations for premium feel */
+.equation-renderer {
+  display: inline-block;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* --- Animations --- */
