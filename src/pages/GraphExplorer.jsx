@@ -91,24 +91,23 @@ export default function GraphExplorer() {
 
   // Prepare functions for the MathGraph component
   const activeFunctions = useMemo(() => {
-    return Array.from(selectedIds).map(id => {
+    const funcs = Array.from(selectedIds).map(id => {
       const config = graphConfigs[id];
       return {
         fn: (x) => config.fn(x, params[id]),
         color: config.color,
-        // We wrap the fn to inject current params
       };
     });
     
     // Append custom function if valid
     if (customFn) {
-      functions.push({
+      funcs.push({
         fn: customFn,
         color: '#c084fc', // purple-400 for custom
       });
     }
 
-    return functions;
+    return funcs;
   }, [selectedIds, params, customFn]);
 
   return (
