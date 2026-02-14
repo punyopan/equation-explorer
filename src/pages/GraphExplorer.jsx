@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import * as math from 'mathjs';
 import MathGraph from '../components/MathGraph';
+import MathKeyboard from '../components/MathKeyboard';
 import graphConfigs from '../data/graphConfigs';
 import './GraphExplorer.css';
 
@@ -32,6 +33,63 @@ export default function GraphExplorer() {
   const [customInput, setCustomInput] = useState('');
   const [customError, setCustomError] = useState(null);
   const [customFn, setCustomFn] = useState(null);
+
+  // Keyboard State
+  const [showKeyboard, setShowKeyboard] = useState(false);
+  const inputRef = useRef(null);
+
+  // --- Keyboard Handlers ---
+  const handleKeyboardInput = (val) => {
+    const input = inputRef.current;
+    if (!input) {
+      setCustomInput(prev => prev + val);
+      return;
+    }
+
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const text = customInput;
+    
+    // Insert text at cursor
+    const newValue = text.substring(0, start) + val + text.substring(end);
+    setCustomInput(newValue);
+    
+    // Restore focus and move cursor
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(start + val.length, start + val.length);
+    }, 0);
+  };
+
+  const handleKeyboardDelete = () => {
+    const input = inputRef.current;
+    if (!input) {
+      setCustomInput(prev => prev.slice(0, -1));
+      return;
+    }
+    
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const text = customInput;
+
+    if (start === end && start > 0) {
+      // Remove character before cursor
+      const newValue = text.substring(0, start - 1) + text.substring(end);
+      setCustomInput(newValue);
+      setTimeout(() => {
+        input.focus();
+        input.setSelectionRange(start - 1, start - 1);
+      }, 0);
+    } else if (start !== end) {
+      // Remove selection
+      const newValue = text.substring(0, start) + text.substring(end);
+      setCustomInput(newValue);
+      setTimeout(() => {
+        input.focus();
+        input.setSelectionRange(start, start);
+      }, 0);
+    }
+  };
 
   // Debounced compilation of custom input
   useEffect(() => {
@@ -122,14 +180,33 @@ export default function GraphExplorer() {
         <div className="graph-sidebar__content">
           {/* Custom Equation Input */}
           <div className="graph-custom-input glass-card-inner">
-            <label className="graph-label">Custom Equation (y = ...)</label>
+            <div className="input-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <label className="graph-label" style={{ marginBottom: 0 }}>Custom Equation</label>
+              <button 
+                className="keyboard-toggle-btn"
+                onClick={() => setShowKeyboard(!showKeyboard)}
+                title="Toggle Math Keyboard"
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  padding: '2px 6px',
+                  fontSize: '1.2rem'
+                }}
+              >
+                ⌨️
+              </button>
+            </div>
             <div className={`input-wrapper ${customError ? 'input-error' : ''}`}>
               <span className="input-prefix">y =</span>
               <input 
+                ref={inputRef}
                 type="text" 
                 placeholder="e.g. x^2 + sin(x)"
                 value={customInput}
                 onChange={(e) => setCustomInput(e.target.value)}
+                onFocus={() => setShowKeyboard(true)}
               />
             </div>
             {customError && <div className="error-msg">{customError}</div>}
@@ -187,6 +264,16 @@ export default function GraphExplorer() {
           <MathGraph functions={activeFunctions} />
         </div>
       </main>
+
+      {/* Virtual Keyboard */}
+      {showKeyboard && (
+        <MathKeyboard 
+          onInput={handleKeyboardInput}
+          onDelete={handleKeyboardDelete}
+          onClear={() => setCustomInput('')}
+          onClose={() => setShowKeyboard(false)}
+        />
+      )}
     </div>
   );
 }
