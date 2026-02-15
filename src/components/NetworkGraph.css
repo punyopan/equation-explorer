@@ -1,0 +1,302 @@
+/* ═══════════════════════════════════════════════════════════════
+   Network Graph — Radial Mindmap with Sub-branches
+   ═══════════════════════════════════════════════════════════════ */
+
+.network-graph {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 80px);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at center, rgba(99, 102, 241, 0.06) 0%, transparent 55%),
+    radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.03) 0%, transparent 40%);
+  border-radius: var(--radius-xl, 16px);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ─── Controls ───────────────────────────────────────────────── */
+
+.ng-controls {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+}
+
+.ng-ctrl-btn {
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.ng-ctrl-btn:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #c7d2fe;
+}
+
+/* ─── SVG Canvas ─────────────────────────────────────────────── */
+
+.ng-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+/* ─── Link animations ────────────────────────────────────────── */
+
+.ng-link-anim {
+  transition: stroke-opacity 0.4s ease, stroke-width 0.4s ease;
+}
+
+/* ─── Cross-link labels ──────────────────────────────────────── */
+
+.ng-cross-label {
+  fill: rgba(255, 255, 255, 0.55);
+  font-size: 5.5px;
+  font-weight: 500;
+  pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* ─── Hub node ───────────────────────────────────────────────── */
+
+.ng-hub text {
+  pointer-events: none;
+}
+
+/* ─── Topic nodes ────────────────────────────────────────────── */
+
+.ng-topic {
+  transition: transform 0.3s ease;
+}
+.ng-topic:hover circle:first-of-type,
+.ng-topic:hover circle:nth-of-type(2) {
+  stroke-width: 3;
+}
+.ng-topic-label {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+/* Pulse ring on expanded topics */
+.ng-pulse {
+  animation: ng-pulse-anim 2.5s ease-in-out infinite;
+}
+@keyframes ng-pulse-anim {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.35; }
+}
+
+/* ─── Sub-branch nodes ───────────────────────────────────────── */
+
+.ng-sub {
+  pointer-events: none;
+}
+.ng-sub-text {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+/* ─── Equation nodes ─────────────────────────────────────────── */
+
+.ng-eq {
+  transition: opacity 0.35s ease;
+}
+.ng-eq.dimmed {
+  opacity: 0.1;
+}
+.ng-eq.selected .ng-eq-circle {
+  stroke-dasharray: 4 2;
+  animation: ng-dash 3s linear infinite;
+}
+@keyframes ng-dash {
+  to { stroke-dashoffset: -24; }
+}
+.ng-eq-text {
+  pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+.ng-eq-circle {
+  transition: r 0.2s ease, fill 0.2s ease;
+}
+
+/* ─── Info Panel ─────────────────────────────────────────────── */
+
+.ng-panel {
+  position: absolute;
+  bottom: 48px;
+  right: 16px;
+  width: 310px;
+  max-height: 58vh;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 18px;
+  z-index: 20;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  animation: ng-panel-in 0.3s ease-out;
+}
+@keyframes ng-panel-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ng-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.ng-panel-head h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ng-panel-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0 3px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.ng-panel-close:hover { color: #fff; }
+
+.ng-panel-formula {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  text-align: center;
+  overflow-x: auto;
+}
+.ng-panel-formula .katex { font-size: 1.1em; }
+
+.ng-panel-desc {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+
+.ng-panel-badges {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.ng-badge {
+  padding: 3px 9px;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  background: rgba(99, 102, 241, 0.14);
+  color: rgba(165, 180, 252, 0.85);
+  text-transform: capitalize;
+}
+
+/* ─── Related Connections ────────────────────────────────────── */
+
+.ng-panel-related { margin-bottom: 12px; }
+.ng-panel-related h4 {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0 0 6px;
+}
+.ng-panel-rel-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 6px 9px;
+  margin-bottom: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ng-panel-rel-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.ng-rel-name { font-weight: 600; }
+.ng-rel-type {
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
+}
+
+/* ─── Go Button ──────────────────────────────────────────────── */
+
+.ng-panel-go {
+  width: 100%;
+  padding: 9px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ng-panel-go:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+}
+
+/* ─── Hint Bar ───────────────────────────────────────────────── */
+
+.ng-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 16px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 20px;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .ng-panel {
+    width: calc(100% - 32px);
+    left: 16px;
+    right: 16px;
+    bottom: 38px;
+    max-height: 42vh;
+  }
+  .ng-controls { top: 8px; left: 8px; }
+  .ng-ctrl-btn { padding: 5px 10px; font-size: 0.68rem; }
+}

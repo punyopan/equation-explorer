@@ -1,0 +1,43 @@
+/* ─── Equation Network Page ──────────────────────────────────── */
+
+.equation-network {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-4, 16px);
+}
+
+.equation-network__header {
+  text-align: center;
+  padding: 24px 0 8px;
+}
+
+.equation-network__title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #e2e8f0;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.equation-network__title-icon {
+  font-size: 1.5rem;
+}
+
+.equation-network__subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.equation-network__canvas {
+  margin-top: 8px;
+  border-radius: var(--radius-xl, 16px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(15, 23, 42, 0.4);
+}

@@ -5,6 +5,7 @@ import Browse from './pages/Browse';
 import EquationDetail from './pages/EquationDetail';
 import Practice from './pages/Practice';
 import GraphExplorer from './pages/GraphExplorer';
+import EquationNetwork from './pages/EquationNetwork';
 
 /**
  * Root application component.
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/equation/:id" element={<EquationDetail />} />
         <Route path="/graph" element={<GraphExplorer />} />
         <Route path="/practice" element={<Practice />} />
+        <Route path="/network" element={<EquationNetwork />} />
       </Routes>
     </>
   );

@@ -85,6 +85,12 @@ export default function Navbar() {
             Graph
           </Link>
           <Link
+            to="/network"
+            className={`navbar__link ${isActive('/network') ? 'navbar__link--active' : ''}`}
+          >
+            🧠 Network
+          </Link>
+          <Link
             to="/practice"
             className={`navbar__link ${isActive('/practice') ? 'navbar__link--active' : ''}`}
           >

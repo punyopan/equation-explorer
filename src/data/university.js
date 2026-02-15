@@ -692,6 +692,225 @@ const university = [
       { question: '5! = ?', answer: 120, unit: '' },
     ],
   },
+  {
+    id: 'dot-product',
+    title: 'Dot Product (Scalar Product)',
+    formula: '\\vec{A} \\cdot \\vec{B} = |A||B|\\cos\\theta',
+    description: 'The dot product measures how much two vectors point in the same direction. Result is a scalar. If perpendicular (θ=90°), dot product is zero. Used in work (W = F·d), projections, and computer graphics.',
+    category: 'math',
+    subcategory: 'linear-algebra',
+    level: 'university',
+    variables: [
+      { symbol: '\\vec{A} \\cdot \\vec{B}', name: 'Dot product', unit: '' },
+      { symbol: '|A|', name: 'Magnitude of A', unit: '' },
+      { symbol: '|B|', name: 'Magnitude of B', unit: '' },
+      { symbol: '\\theta', name: 'Angle between vectors', unit: '°' },
+    ],
+    simulationId: 'generic',
+    simulationConfig: {
+      inputs: [
+        { key: 'magA', label: '|A|', min: 0, max: 20, step: 0.5, defaultVal: 5 },
+        { key: 'magB', label: '|B|', min: 0, max: 20, step: 0.5, defaultVal: 8 },
+        { key: 'theta', label: 'Angle θ', min: 0, max: 180, step: 5, defaultVal: 60, unit: '°' },
+      ],
+      compute: (v) => ({ result: v.magA * v.magB * Math.cos(v.theta * Math.PI / 180) }),
+      resultLabel: 'A · B',
+      resultUnit: '',
+    },
+    practiceProblems: [
+      { question: '|A|=5, |B|=8, θ=60°. A·B? (cos60=0.5)', answer: 20, unit: '' },
+      { question: 'Two perpendicular vectors (θ=90°). A·B = ?', answer: 0, unit: '' },
+      { question: 'Two parallel vectors: |A|=3, |B|=4, θ=0°. A·B?', answer: 12, unit: '' },
+      { question: 'A = (1,2,3), B = (4,5,6). A·B = 1×4 + 2×5 + 3×6 = ?', answer: 32, unit: '' },
+      { question: 'Anti-parallel vectors (θ=180°). |A|=5, |B|=3. A·B?', answer: -15, unit: '' },
+    ],
+  },
+  {
+    id: 'cross-product',
+    title: 'Cross Product (Vector Product)',
+    formula: '|\\vec{A} \\times \\vec{B}| = |A||B|\\sin\\theta',
+    description: 'The cross product produces a vector perpendicular to both input vectors. Its magnitude equals the area of the parallelogram formed by the two vectors. Used in torque, angular momentum, and electromagnetic theory.',
+    category: 'math',
+    subcategory: 'linear-algebra',
+    level: 'university',
+    variables: [
+      { symbol: '|\\vec{A} \\times \\vec{B}|', name: 'Cross product magnitude', unit: '' },
+      { symbol: '|A|', name: 'Magnitude of A', unit: '' },
+      { symbol: '|B|', name: 'Magnitude of B', unit: '' },
+      { symbol: '\\theta', name: 'Angle between vectors', unit: '°' },
+    ],
+    simulationId: 'generic',
+    simulationConfig: {
+      inputs: [
+        { key: 'magA', label: '|A|', min: 0, max: 20, step: 0.5, defaultVal: 5 },
+        { key: 'magB', label: '|B|', min: 0, max: 20, step: 0.5, defaultVal: 8 },
+        { key: 'theta', label: 'Angle θ', min: 0, max: 180, step: 5, defaultVal: 90, unit: '°' },
+      ],
+      compute: (v) => ({ result: v.magA * v.magB * Math.sin(v.theta * Math.PI / 180) }),
+      resultLabel: '|A × B|',
+      resultUnit: '',
+    },
+    practiceProblems: [
+      { question: '|A|=5, |B|=8, θ=90°. |A×B|?', answer: 40, unit: '' },
+      { question: 'Two parallel vectors (θ=0°). |A×B| = ?', answer: 0, unit: '' },
+      { question: '|A|=3, |B|=4, θ=30°. |A×B|? (sin30=0.5)', answer: 6, unit: '' },
+      { question: 'The direction of A×B follows which rule?', answer: 0, unit: '(right-hand rule)' },
+      { question: 'A×B = -(B×A). Is cross product commutative?', answer: 0, unit: '(no, anti-commutative)' },
+    ],
+  },
+  {
+    id: 'binomial-distribution',
+    title: 'Binomial Distribution',
+    formula: 'P(X=k) = \\binom{n}{k} p^k (1-p)^{n-k}',
+    description: 'The binomial distribution gives the probability of exactly k successes in n independent trials, each with success probability p. Used in quality control, medical trials, and reliability engineering.',
+    category: 'math',
+    subcategory: 'statistics',
+    level: 'university',
+    variables: [
+      { symbol: 'P(X=k)', name: 'Probability of k successes', unit: '' },
+      { symbol: 'n', name: 'Number of trials', unit: '' },
+      { symbol: 'k', name: 'Number of successes', unit: '' },
+      { symbol: 'p', name: 'Probability of success per trial', unit: '' },
+    ],
+    simulationId: 'generic',
+    simulationConfig: {
+      inputs: [
+        { key: 'n', label: 'Trials (n)', min: 1, max: 30, step: 1, defaultVal: 10 },
+        { key: 'k', label: 'Successes (k)', min: 0, max: 30, step: 1, defaultVal: 3 },
+        { key: 'p', label: 'P(success)', min: 0, max: 1, step: 0.05, defaultVal: 0.5 },
+      ],
+      compute: (v) => {
+        const factorial = (num) => { let f = 1; for (let i = 2; i <= num; i++) f *= i; return f; };
+        const comb = factorial(v.n) / (factorial(v.k) * factorial(v.n - v.k));
+        const prob = comb * Math.pow(v.p, v.k) * Math.pow(1 - v.p, v.n - v.k);
+        return { result: prob, 'Mean (np)': v.n * v.p, 'C(n,k)': comb };
+      },
+      resultLabel: 'P(X = k)',
+      resultUnit: '',
+      resultMax: 1,
+    },
+    practiceProblems: [
+      { question: 'Flip fair coin 10 times. P(exactly 5 heads)? (Round to 2 decimals)', answer: 0.25, unit: '' },
+      { question: 'n=4, k=0, p=0.5. P(0 successes)? (as fraction: 1/?)', answer: 16, unit: '' },
+      { question: 'Mean of binomial: E[X] = np. n=20, p=0.3. E[X]?', answer: 6, unit: '' },
+      { question: 'C(5,2) = ?', answer: 10, unit: '' },
+      { question: 'Variance = np(1-p). n=100, p=0.5. Variance?', answer: 25, unit: '' },
+    ],
+  },
+  {
+    id: 'wave-equation',
+    title: 'Wave Equation (1D)',
+    formula: '\\frac{\\partial^2 u}{\\partial t^2} = v^2 \\frac{\\partial^2 u}{\\partial x^2}',
+    description: 'The wave equation is a fundamental PDE describing how disturbances propagate through a medium. It governs sound waves, vibrating strings, electromagnetic waves, and seismic waves. The parameter v is the wave speed.',
+    category: 'physics',
+    subcategory: 'waves',
+    level: 'university',
+    variables: [
+      { symbol: 'u', name: 'Displacement', unit: '' },
+      { symbol: 'v', name: 'Wave speed', unit: 'm/s' },
+      { symbol: 'x', name: 'Position', unit: 'm' },
+      { symbol: 't', name: 'Time', unit: 's' },
+    ],
+    simulationId: 'generic',
+    simulationConfig: {
+      inputs: [
+        { key: 'A', label: 'Amplitude', min: 0.1, max: 10, step: 0.1, defaultVal: 2 },
+        { key: 'k', label: 'Wave number (k)', min: 0.1, max: 10, step: 0.1, defaultVal: 1, unit: 'rad/m' },
+        { key: 'omega', label: 'Angular freq (ω)', min: 0.1, max: 20, step: 0.1, defaultVal: 3, unit: 'rad/s' },
+        { key: 'x', label: 'Position (x)', min: 0, max: 10, step: 0.1, defaultVal: 2, unit: 'm' },
+        { key: 't', label: 'Time (t)', min: 0, max: 10, step: 0.1, defaultVal: 1, unit: 's' },
+      ],
+      compute: (v) => ({
+        result: v.A * Math.sin(v.k * v.x - v.omega * v.t),
+        'Wave speed (v=ω/k)': v.omega / v.k,
+        'Wavelength (λ=2π/k)': 2 * Math.PI / v.k,
+      }),
+      resultLabel: 'u(x,t)',
+      resultUnit: '',
+    },
+    practiceProblems: [
+      { question: 'If ω=6 rad/s and k=2 rad/m, wave speed v = ω/k = ?', answer: 3, unit: 'm/s' },
+      { question: 'Wavelength λ = 2π/k. If k=π, λ = ?', answer: 2, unit: 'm' },
+      { question: 'A general solution is u = f(x-vt) + g(x+vt). How many wave directions?', answer: 2, unit: '' },
+      { question: 'Speed of sound ≈ 340 m/s. Frequency 170 Hz. Wavelength?', answer: 2, unit: 'm' },
+      { question: 'Speed of light = 3×10⁸ m/s. Frequency 6×10¹⁴ Hz. Wavelength in nm?', answer: 500, unit: 'nm' },
+    ],
+  },
+  {
+    id: 'moment-of-inertia',
+    title: 'Moment of Inertia (Point Mass)',
+    formula: 'I = \\sum m_i r_i^2',
+    description: 'The moment of inertia is the rotational analog of mass. It quantifies resistance to angular acceleration. Depends on both the mass distribution and the axis of rotation. Appears in the rotational analog of Newton\'s second law: τ = Iα.',
+    category: 'physics',
+    subcategory: 'mechanics',
+    level: 'university',
+    variables: [
+      { symbol: 'I', name: 'Moment of inertia', unit: 'kg·m²' },
+      { symbol: 'm', name: 'Mass', unit: 'kg' },
+      { symbol: 'r', name: 'Distance from axis', unit: 'm' },
+    ],
+    simulationId: 'generic',
+    simulationConfig: {
+      inputs: [
+        { key: 'm', label: 'Mass (m)', min: 0.1, max: 100, step: 0.5, defaultVal: 5, unit: 'kg' },
+        { key: 'r', label: 'Radius (r)', min: 0.1, max: 10, step: 0.1, defaultVal: 2, unit: 'm' },
+      ],
+      compute: (v) => ({
+        result: v.m * v.r * v.r,
+        'Solid sphere (2/5)mr²': (2/5) * v.m * v.r * v.r,
+        'Solid cylinder (1/2)mr²': 0.5 * v.m * v.r * v.r,
+      }),
+      resultLabel: 'I (point mass)',
+      resultUnit: 'kg·m²',
+    },
+    practiceProblems: [
+      { question: 'A 5 kg mass 2 m from the axis. I = ?', answer: 20, unit: 'kg·m²' },
+      { question: 'Solid sphere: I = (2/5)mr². m=10 kg, r=3 m. I = ?', answer: 36, unit: 'kg·m²' },
+      { question: 'Solid disk: I = (1/2)mr². m=4 kg, r=2 m. I = ?', answer: 8, unit: 'kg·m²' },
+      { question: 'If mass triples (same r), I changes by factor of?', answer: 3, unit: '' },
+      { question: 'If radius doubles (same mass), I changes by factor of?', answer: 4, unit: '' },
+    ],
+  },
+  {
+    id: 'electric-potential',
+    title: 'Electric Potential Energy',
+    formula: 'U = k\\frac{q_1 q_2}{r}',
+    description: 'Electric potential energy is the energy stored in the configuration of two charges. Unlike force (1/r²), potential energy follows a 1/r relationship. Positive U for like charges (repulsion), negative for unlike charges (attraction).',
+    category: 'physics',
+    subcategory: 'electricity',
+    level: 'university',
+    variables: [
+      { symbol: 'U', name: 'Electric potential energy', unit: 'J' },
+      { symbol: 'k', name: "Coulomb's constant (8.99×10⁹)", unit: 'N·m²/C²' },
+      { symbol: 'q_1', name: 'Charge 1', unit: 'C' },
+      { symbol: 'q_2', name: 'Charge 2', unit: 'C' },
+      { symbol: 'r', name: 'Distance between charges', unit: 'm' },
+    ],
+    simulationId: 'generic',
+    simulationConfig: {
+      inputs: [
+        { key: 'q1', label: 'q₁ (μC)', min: -100, max: 100, step: 1, defaultVal: 5, unit: 'μC' },
+        { key: 'q2', label: 'q₂ (μC)', min: -100, max: 100, step: 1, defaultVal: 10, unit: 'μC' },
+        { key: 'r', label: 'Distance (r)', min: 0.01, max: 1, step: 0.01, defaultVal: 0.1, unit: 'm' },
+      ],
+      compute: (v) => {
+        const k = 8.99e9;
+        const q1 = v.q1 * 1e-6;
+        const q2 = v.q2 * 1e-6;
+        return { result: k * q1 * q2 / v.r };
+      },
+      resultLabel: 'U (potential energy)',
+      resultUnit: 'J',
+    },
+    practiceProblems: [
+      { question: 'Two +1C charges 1m apart. U = k×1×1/1 = ? (k=9×10⁹, answer in ×10⁹ J)', answer: 9, unit: '×10⁹ J' },
+      { question: 'Compared to Coulomb force (1/r²), potential energy depends on 1/r. If r doubles, U changes by factor of?', answer: 0.5, unit: '' },
+      { question: 'Two opposite charges (+q and -q). Is U positive or negative?', answer: 0, unit: '(negative — attraction)' },
+      { question: 'At infinite separation, U = ?', answer: 0, unit: 'J' },
+      { question: 'q₁ = 2C, q₂ = 3C, r = 1m. U relative to q₁=q₂=1C?', answer: 6, unit: 'times' },
+    ],
+  },
 ];
 
 export default university;
+
