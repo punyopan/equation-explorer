@@ -7,13 +7,28 @@ import './NetworkGraph.css';
 
 /* ─── Layout Constants ───────────────────────────────────────── */
 const CENTER = { x: 0, y: 0 };
-const TOPIC_RING_R = 280;
-const SUB_RING_OFFSET = 130;
-const EQ_RING_OFFSET = 100;
-const TOPIC_R = 34;
-const SUB_R = 18;
-const EQ_R = 18;
-const MIN_EQ_GAP_ANGLE = 0.09; // minimum angular gap between eq nodes (~5°)
+
+// Desktop defaults
+const DESKTOP = {
+  TOPIC_RING_R: 280,
+  SUB_RING_OFFSET: 130,
+  EQ_RING_OFFSET: 100,
+  TOPIC_R: 34,
+  SUB_R: 18,
+  EQ_R: 18,
+  MIN_EQ_GAP_ANGLE: 0.09,
+};
+
+// Mobile: shorter lines, bigger nodes, more spacing
+const MOBILE = {
+  TOPIC_RING_R: 180,
+  SUB_RING_OFFSET: 90,
+  EQ_RING_OFFSET: 75,
+  TOPIC_R: 42,
+  SUB_R: 24,
+  EQ_R: 24,
+  MIN_EQ_GAP_ANGLE: 0.14,
+};
 
 /* ─── Helpers ─────────────────────────────────────────────────── */
 
@@ -86,7 +101,15 @@ function subLabel(key) {
  *   └─ Topic nodes — positioned at center of their angular sector
  *       └─ Sub-branches / Equations fan out within that sector width
  */
-function computeLayout(expandedTopics) {
+function computeLayout(expandedTopics, isMobile = false) {
+  const C = isMobile ? MOBILE : DESKTOP;
+  const TOPIC_RING_R = C.TOPIC_RING_R;
+  const SUB_RING_OFFSET = C.SUB_RING_OFFSET;
+  const EQ_RING_OFFSET = C.EQ_RING_OFFSET;
+  const TOPIC_R = C.TOPIC_R;
+  const SUB_R = C.SUB_R;
+  const EQ_R = C.EQ_R;
+  const MIN_EQ_GAP_ANGLE = C.MIN_EQ_GAP_ANGLE;
   const nodes = [];
   const links = [];
 
@@ -245,7 +268,7 @@ function computeLayout(expandedTopics) {
     }
   }
 
-  return { nodes, links, crossLinks, nodeById };
+  return { nodes, links, crossLinks, nodeById, TOPIC_R, SUB_R, EQ_R };
 }
 
 /* ─── Animated node wrapper ───────────────────────────────────── */
@@ -290,6 +313,9 @@ export default function NetworkGraph() {
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
 
+  // Pinch-zoom state
+  const pinchRef = useRef({ active: false, dist: 0, startK: 0.65 });
+
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -298,7 +324,7 @@ export default function NetworkGraph() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const layout = useMemo(() => computeLayout(expandedTopics), [expandedTopics]);
+  const layout = useMemo(() => computeLayout(expandedTopics, isMobile), [expandedTopics, isMobile]);
 
   /* ─── Expand / Collapse ─────────────────────────────────────── */
   const toggleExpand = useCallback((topicId) => {
@@ -350,6 +376,36 @@ export default function NetworkGraph() {
 
   const handlePointerUp = useCallback(() => setIsPanning(false), []);
 
+  // --- Pinch-to-zoom for mobile ---
+  const handleTouchStart = useCallback((e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchRef.current = {
+        active: true,
+        dist: Math.sqrt(dx * dx + dy * dy),
+        startK: transform.k,
+      };
+    }
+  }, [transform.k]);
+
+  const handleTouchMove = useCallback((e) => {
+    if (e.touches.length === 2 && pinchRef.current.active) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const newDist = Math.sqrt(dx * dx + dy * dy);
+      const ratio = newDist / pinchRef.current.dist;
+      const newK = Math.max(0.15, Math.min(3, pinchRef.current.startK * ratio));
+      setTransform((prev) => ({ ...prev, k: newK }));
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    pinchRef.current.active = false;
+  }, []);
+
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
@@ -382,25 +438,25 @@ export default function NetworkGraph() {
 
   /* ─── Reset ──────────────────────────────────────────────────── */
   const resetView = useCallback(() => {
-    setTransform({ x: 0, y: 0, k: 0.65 });
+    setTransform({ x: 0, y: 0, k: isMobile ? 0.8 : 0.65 });
     setSelectedNode(null);
     setExpandedTopics(new Set());
-  }, []);
+  }, [isMobile]);
 
   /* ─── Viewbox ────────────────────────────────────────────────── */
   const vb = useMemo(() => {
     if (layout.nodes.length === 0) return '-600 -600 1200 1200';
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for (const n of layout.nodes) {
-      const r = n.type === 'hub' ? 50 : n.type === 'topic' ? TOPIC_R + 30 : 30;
+      const r = n.type === 'hub' ? 50 : n.type === 'topic' ? layout.TOPIC_R + 30 : 30;
       if (n.x - r < minX) minX = n.x - r;
       if (n.x + r > maxX) maxX = n.x + r;
       if (n.y - r < minY) minY = n.y - r;
       if (n.y + r > maxY) maxY = n.y + r;
     }
-    const pad = 140;
+    const pad = isMobile ? 100 : 140;
     return `${minX - pad} ${minY - pad} ${maxX - minX + pad * 2} ${maxY - minY + pad * 2}`;
-  }, [layout]);
+  }, [layout, isMobile]);
 
   /* =================================================================== */
   /*  R E N D E R                                                        */
@@ -422,6 +478,9 @@ export default function NetworkGraph() {
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
       >
         <defs>
@@ -502,13 +561,13 @@ export default function NetworkGraph() {
                 onClick={(e) => { e.stopPropagation(); handleNodeClick(n.id, 'topic'); }}
                 style={{ cursor: 'pointer' }}
               >
-                {expanded && <circle r={TOPIC_R + 6} fill="none" stroke={n.color} strokeWidth={1} opacity={0.2} className="ng-pulse" />}
-                <circle r={TOPIC_R} fill={`${n.color}18`} stroke={n.color}
+                {expanded && <circle r={layout.TOPIC_R + 6} fill="none" stroke={n.color} strokeWidth={1} opacity={0.2} className="ng-pulse" />}
+                <circle r={layout.TOPIC_R} fill={`${n.color}18`} stroke={n.color}
                   strokeWidth={expanded ? 2.5 : 1.5} filter={!isMobile ? 'url(#glow)' : undefined} />
-                <text textAnchor="middle" dominantBaseline="central" fontSize="18">{n.icon}</text>
-                <text textAnchor="middle" y={TOPIC_R + 14} fill={n.color}
-                  fontSize="8" fontWeight="700" letterSpacing="0.3" className="ng-topic-label">{n.label}</text>
-                <text textAnchor="middle" y={TOPIC_R + 24} fill="rgba(255,255,255,0.3)" fontSize="6">
+                <text textAnchor="middle" dominantBaseline="central" fontSize={isMobile ? '22' : '18'}>{n.icon}</text>
+                <text textAnchor="middle" y={layout.TOPIC_R + 14} fill={n.color}
+                  fontSize={isMobile ? '10' : '8'} fontWeight="700" letterSpacing="0.3" className="ng-topic-label">{n.label}</text>
+                <text textAnchor="middle" y={layout.TOPIC_R + 24} fill="rgba(255,255,255,0.3)" fontSize={isMobile ? '7' : '6'}>
                   {n.eqCount} equations {expanded ? '▾' : '▸'}
                 </text>
               </g>
@@ -520,10 +579,10 @@ export default function NetworkGraph() {
             <AnimatedNode key={n.id} x={n.x} y={n.y} delay={i * 30}
               className="ng-node ng-sub"
             >
-              <circle r={SUB_R} fill={`${n.color}15`} stroke={n.color}
+              <circle r={layout.SUB_R} fill={`${n.color}15`} stroke={n.color}
                 strokeWidth={1} strokeDasharray="3 3" />
               <text textAnchor="middle" dominantBaseline="central" fill={n.color}
-                fontSize="5.5" fontWeight="600" className="ng-sub-text">{n.label}</text>
+                fontSize={isMobile ? '7' : '5.5'} fontWeight="600" className="ng-sub-text">{n.label}</text>
             </AnimatedNode>
           ))}
 
@@ -545,15 +604,15 @@ export default function NetworkGraph() {
                 onDoubleClick={(e) => { e.stopPropagation(); handleNodeDblClick(n.id, 'equation'); }}
                 style={{ cursor: 'pointer' }}
               >
-                <circle r={hot ? EQ_R + 4 : EQ_R}
+                <circle r={hot ? layout.EQ_R + 4 : layout.EQ_R}
                   fill={hot ? `${n.color}35` : `${n.color}12`}
                   stroke={n.color} strokeWidth={isSel ? 2.5 : 1.2}
                   filter={hot && !isMobile ? 'url(#glow)' : undefined}
                   className="ng-eq-circle"
                 />
                 <text textAnchor="middle" dominantBaseline="central"
-                  fill="#e2e8f0" fontSize="5" fontWeight="600" className="ng-eq-text">
-                  {eq.title.length > 18 ? eq.title.slice(0, 16) + '…' : eq.title}
+                  fill="#e2e8f0" fontSize={isMobile ? '6.5' : '5'} fontWeight="600" className="ng-eq-text">
+                  {eq.title.length > (isMobile ? 14 : 18) ? eq.title.slice(0, isMobile ? 12 : 16) + '…' : eq.title}
                 </text>
               </AnimatedNode>
             );
