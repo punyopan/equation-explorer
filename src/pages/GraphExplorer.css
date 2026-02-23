@@ -283,8 +283,7 @@
   .graph-explorer {
     flex-direction: column;
     position: relative;
-    height: 100vh;
-    margin-top: 0;
+    /* navbar is still visible, keep height accounting for it */
   }
 
   /* Graph fills the viewport */

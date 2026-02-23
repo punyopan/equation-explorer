@@ -205,9 +205,6 @@
 }
 
 @media (max-width: 768px) {
-  .detail {
-    padding-top: var(--space-8);
-  }
   .detail__title {
     font-size: var(--fs-3xl);
   }

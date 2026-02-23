@@ -123,9 +123,6 @@
 }
 
 @media (max-width: 768px) {
-  .browse {
-    padding-top: var(--space-8);
-  }
   .browse__grid {
     grid-template-columns: 1fr;
   }
