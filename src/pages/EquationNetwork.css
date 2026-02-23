@@ -3,7 +3,7 @@
 .equation-network {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 var(--space-4, 16px);
+  padding: calc(var(--navbar-height) + var(--space-8)) var(--space-4) 0;
 }
 
 .equation-network__header {
