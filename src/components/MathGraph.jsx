@@ -25,7 +25,7 @@ export default function MathGraph({ functions = [] }) {
 
   const [isDragging, setIsDragging] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
-  const [mouseMath, setMouseMath] = useState(null); // Mouse pos in math coords
+  const crosshairRef = useRef(null);
 
   // --- Rendering Loop ---
   useEffect(() => {
@@ -149,33 +149,7 @@ export default function MathGraph({ functions = [] }) {
       ctx.stroke();
     });
 
-    // --- Draw Crosshair if hovering ---
-    if (mouseMath) {
-      const mx = mouseMath.x;
-      const my = mouseMath.y;
-      const sx = toScreenX(mx);
-      const sy = toScreenY(my);
-
-      // Dot
-      ctx.fillStyle = 'white';
-      ctx.beginPath();
-      ctx.arc(sx, sy, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Coordinates text
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-      ctx.fillRect(sx + 10, sy - 30, 80, 24);
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-      ctx.strokeRect(sx + 10, sy - 30, 80, 24);
-      
-      ctx.fillStyle = 'white';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.font = '10px monospace';
-      ctx.fillText(`(${mx.toFixed(2)}, ${my.toFixed(2)})`, sx + 15, sy - 18);
-    }
-
-  }, [view, functions, mouseMath]);
+  }, [view, functions]); // removed mouseMath
 
   // --- Interactivity Handlers ---
 
@@ -186,12 +160,13 @@ export default function MathGraph({ functions = [] }) {
     setView(v => ({ ...v, scale: Math.max(1, Math.min(newScale, 10000)) }));
   };
 
-  const handleMouseDown = (e) => {
+  const handlePointerDown = (e) => {
+    e.target.setPointerCapture(e.pointerId);
     setIsDragging(true);
     setLastPos({ x: e.clientX, y: e.clientY });
   };
 
-  const handleMouseMove = (e) => {
+  const handlePointerMove = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
@@ -199,7 +174,12 @@ export default function MathGraph({ functions = [] }) {
     // Update mouse math pos for crosshair
     const x = view.x + (mx - rect.width / 2) / view.scale;
     const y = view.y - (my - rect.height / 2) / view.scale;
-    setMouseMath({ x, y });
+    
+    if (crosshairRef.current) {
+      crosshairRef.current.style.display = 'block';
+      crosshairRef.current.style.transform = `translate(${mx}px, ${my}px)`;
+      crosshairRef.current.querySelector('.math-graph-crosshair-text').textContent = `(${x.toFixed(2)}, ${y.toFixed(2)})`;
+    }
 
     if (isDragging) {
       const dx = e.clientX - lastPos.x;
@@ -214,8 +194,16 @@ export default function MathGraph({ functions = [] }) {
     }
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = (e) => {
+    e.target.releasePointerCapture(e.pointerId);
     setIsDragging(false);
+  };
+
+  const handlePointerLeave = () => {
+    setIsDragging(false);
+    if (crosshairRef.current) {
+      crosshairRef.current.style.display = 'none';
+    }
   };
 
   return (
@@ -224,14 +212,20 @@ export default function MathGraph({ functions = [] }) {
         ref={canvasRef}
         className="math-graph-canvas"
         onWheel={handleWheel}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={() => {
-          setIsDragging(false);
-          setMouseMath(null);
-        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onPointerLeave={handlePointerLeave}
       />
+      <div 
+        ref={crosshairRef} 
+        className="math-graph-crosshair" 
+        style={{ display: 'none', position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
+      >
+        <div className="math-graph-crosshair-dot" style={{ width: 8, height: 8, background: 'white', borderRadius: '50%', transform: 'translate(-50%, -50%)' }} />
+        <div className="math-graph-crosshair-text" style={{ position: 'absolute', left: 10, top: -30, background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.2)', padding: '4px 8px', color: 'white', font: '10px monospace', whiteSpace: 'nowrap' }} />
+      </div>
       <div className="math-graph-controls">
         <button className="graph-btn" onClick={() => setView({ x: 0, y: 0, scale: 40 })}>
           ⟲ Reset View

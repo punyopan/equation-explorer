@@ -290,6 +290,14 @@ export default function NetworkGraph() {
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const layout = useMemo(() => computeLayout(expandedTopics), [expandedTopics]);
 
   /* ─── Expand / Collapse ─────────────────────────────────────── */
@@ -464,7 +472,7 @@ export default function NetworkGraph() {
                   strokeOpacity={dim ? 0.02 : hot ? 0.65 : 0.05}
                   strokeWidth={hot ? 2 : 0.8}
                   strokeDasharray={hot ? 'none' : '4 4'}
-                  fill="none" filter={hot ? 'url(#glow)' : undefined}
+                  fill="none" filter={hot && !isMobile ? 'url(#glow)' : undefined}
                   className="ng-link-anim"
                 />
                 {hot && (
@@ -477,7 +485,7 @@ export default function NetworkGraph() {
 
           {/* ── Hub ──────────────────────────────────────────── */}
           <g className="ng-node ng-hub">
-            <circle cx={0} cy={0} r={48} fill="url(#hg)" stroke="#818cf8" strokeWidth={2} filter="url(#glow-lg)" />
+            <circle cx={0} cy={0} r={48} fill="url(#hg)" stroke="#818cf8" strokeWidth={2} filter={!isMobile ? "url(#glow-lg)" : undefined} />
             <circle cx={0} cy={0} r={48} fill="none" stroke="#818cf8" strokeWidth={0.5} strokeDasharray="4 6" opacity={0.3}>
               <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="60s" repeatCount="indefinite" />
             </circle>
@@ -496,7 +504,7 @@ export default function NetworkGraph() {
               >
                 {expanded && <circle r={TOPIC_R + 6} fill="none" stroke={n.color} strokeWidth={1} opacity={0.2} className="ng-pulse" />}
                 <circle r={TOPIC_R} fill={`${n.color}18`} stroke={n.color}
-                  strokeWidth={expanded ? 2.5 : 1.5} filter="url(#glow)" />
+                  strokeWidth={expanded ? 2.5 : 1.5} filter={!isMobile ? 'url(#glow)' : undefined} />
                 <text textAnchor="middle" dominantBaseline="central" fontSize="18">{n.icon}</text>
                 <text textAnchor="middle" y={TOPIC_R + 14} fill={n.color}
                   fontSize="8" fontWeight="700" letterSpacing="0.3" className="ng-topic-label">{n.label}</text>
@@ -540,7 +548,7 @@ export default function NetworkGraph() {
                 <circle r={hot ? EQ_R + 4 : EQ_R}
                   fill={hot ? `${n.color}35` : `${n.color}12`}
                   stroke={n.color} strokeWidth={isSel ? 2.5 : 1.2}
-                  filter={hot ? 'url(#glow)' : undefined}
+                  filter={hot && !isMobile ? 'url(#glow)' : undefined}
                   className="ng-eq-circle"
                 />
                 <text textAnchor="middle" dominantBaseline="central"

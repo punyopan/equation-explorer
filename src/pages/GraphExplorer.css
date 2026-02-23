@@ -178,11 +178,14 @@
   
   .graph-sidebar {
     width: 100%;
-    height: 400px; /* limits height on mobile */
+    /* Let content dictate height, but provide a max to allow scrolling */
+    height: auto;
+    max-height: 400px; 
   }
   
   .graph-canvas-wrapper {
     height: 400px;
+    width: 100%;
   }
 }
 
