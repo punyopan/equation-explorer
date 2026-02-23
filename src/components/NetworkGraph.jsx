@@ -172,9 +172,14 @@ function computeLayout(expandedTopics, isMobile = false) {
       const useSubBranches = validEqs.length > 5 && groupKeys.length > 1;
 
       // Available spread for children (keep some padding at edges of sector)
-      // If sector is huge, limit max spread to avoid looking disconnected
-      const maxSpread = Math.PI * 0.8; 
-      const spread = Math.min(sectorAngle * 0.9, maxSpread);
+      // On mobile, let the spread grow up to almost full circle if needed
+      // to avoid overlapping, even if it bleeds outside the sector.
+      const maxSpread = isMobile ? Math.PI * 1.6 : Math.PI * 0.8;
+      const baseSpread = Math.min(sectorAngle * 0.9, maxSpread);
+      
+      // We also enforce that the spread is AT LEAST large enough to fit the equations 
+      // without violating MIN_EQ_GAP_ANGLE.
+      const spread = Math.max(baseSpread, validEqs.length * C.MIN_EQ_GAP_ANGLE);
       
       if (useSubBranches) {
         const groupStep = spread / groupKeys.length;
@@ -200,8 +205,8 @@ function computeLayout(expandedTopics, isMobile = false) {
           // Fan equations from sub-branch
           const eqIds = groups[sc];
           // Determine spread for these equations
-          // Ensure they don't overlap neighbors: limit spread to groupStep * 0.9
-          const eqSpreadCapped = Math.min(groupStep * 0.9, Math.max(eqIds.length * MIN_EQ_GAP_ANGLE, 0.2));
+          // Ensure they don't overlap neighbors: limit spread, but respect minimum gap
+          const eqSpreadCapped = Math.max(eqIds.length * MIN_EQ_GAP_ANGLE, Math.min(groupStep * 0.9, maxSpread));
           const eqStep = eqIds.length > 1 ? eqSpreadCapped / (eqIds.length - 1) : 0;
           const eqStart = subAngle - eqSpreadCapped / 2;
 
@@ -225,8 +230,10 @@ function computeLayout(expandedTopics, isMobile = false) {
         });
       } else {
         // Direct Fan
-        const eqStep = validEqs.length > 1 ? spread / (validEqs.length - 1) : 0;
-        const eqStart = centerAngle - spread / 2;
+        // Again, enforce minimum gap
+        const directSpread = Math.max(spread, validEqs.length * MIN_EQ_GAP_ANGLE);
+        const eqStep = validEqs.length > 1 ? directSpread / (validEqs.length - 1) : 0;
+        const eqStart = centerAngle - directSpread / 2;
 
         validEqs.forEach((eqId, ei) => {
           const eqAngle = validEqs.length === 1 ? centerAngle : eqStart + eqStep * ei;
@@ -380,15 +387,23 @@ export default function NetworkGraph() {
   const handleTouchStart = useCallback((e) => {
     if (e.touches.length === 2) {
       e.preventDefault();
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const cx = (t1.clientX + t2.clientX) / 2;
+      const cy = (t1.clientY + t2.clientY) / 2;
+      const dx = t1.clientX - t2.clientX;
+      const dy = t1.clientY - t2.clientY;
       pinchRef.current = {
         active: true,
         dist: Math.sqrt(dx * dx + dy * dy),
         startK: transform.k,
+        cx,
+        cy,
+        startX: transform.x,
+        startY: transform.y
       };
     }
-  }, [transform.k]);
+  }, [transform]);
 
   const handleTouchMove = useCallback((e) => {
     if (e.touches.length === 2 && pinchRef.current.active) {
@@ -398,7 +413,21 @@ export default function NetworkGraph() {
       const newDist = Math.sqrt(dx * dx + dy * dy);
       const ratio = newDist / pinchRef.current.dist;
       const newK = Math.max(0.15, Math.min(3, pinchRef.current.startK * ratio));
-      setTransform((prev) => ({ ...prev, k: newK }));
+      
+      const rect = svgRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const pRef = pinchRef.current;
+      const svgCx = pRef.cx - rect.left - rect.width / 2;
+      const svgCy = pRef.cy - rect.top - rect.height / 2;
+      
+      // Keep pinch center at same screen coordinate
+      const scaleRatio = 1 - newK / pRef.startK;
+      setTransform({ 
+        x: pRef.startX + (svgCx - pRef.startX) * scaleRatio, 
+        y: pRef.startY + (svgCy - pRef.startY) * scaleRatio, 
+        k: newK 
+      });
     }
   }, []);
 
