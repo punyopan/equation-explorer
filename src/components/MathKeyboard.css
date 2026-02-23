@@ -8,7 +8,7 @@
   backdrop-filter: blur(12px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1rem;
-  z-index: 1000;
+  z-index: 1100;
   animation: slideUp 0.3s ease-out;
   display: flex;
   justify-content: center;
