@@ -146,17 +146,7 @@
 }
 
 @media (max-width: 768px) {
-  .navbar__search {
+  .navbar {
     display: none;
-  }
-  .navbar__inner {
-    gap: var(--space-4);
-  }
-  .navbar__links {
-    gap: 0;
-  }
-  .navbar__link {
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--fs-xs);
   }
 }

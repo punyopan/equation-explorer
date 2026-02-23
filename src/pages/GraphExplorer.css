@@ -283,7 +283,8 @@
   .graph-explorer {
     flex-direction: column;
     position: relative;
-    /* Keep height: calc(100vh - var(--navbar-height)) from base */
+    height: 100vh;
+    margin-top: 0;
   }
 
   /* Graph fills the viewport */
