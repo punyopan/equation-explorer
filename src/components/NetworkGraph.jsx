@@ -172,14 +172,9 @@ function computeLayout(expandedTopics, isMobile = false) {
       const useSubBranches = validEqs.length > 5 && groupKeys.length > 1;
 
       // Available spread for children (keep some padding at edges of sector)
-      // On mobile, let the spread grow up to almost full circle if needed
-      // to avoid overlapping, even if it bleeds outside the sector.
-      const maxSpread = isMobile ? Math.PI * 1.6 : Math.PI * 0.8;
-      const baseSpread = Math.min(sectorAngle * 0.9, maxSpread);
-      
-      // We also enforce that the spread is AT LEAST large enough to fit the equations 
-      // without violating MIN_EQ_GAP_ANGLE.
-      const spread = Math.max(baseSpread, validEqs.length * C.MIN_EQ_GAP_ANGLE);
+      // We cap the maximum spread so they don't wrap around too far.
+      const maxSpread = isMobile ? Math.PI * 1.2 : Math.PI * 0.8;
+      const spread = Math.min(sectorAngle * 0.9, maxSpread);
       
       if (useSubBranches) {
         const groupStep = spread / groupKeys.length;
@@ -204,17 +199,22 @@ function computeLayout(expandedTopics, isMobile = false) {
 
           // Fan equations from sub-branch
           const eqIds = groups[sc];
-          // Determine spread for these equations
-          // Ensure they don't overlap neighbors: limit spread, but respect minimum gap
-          const eqSpreadCapped = Math.max(eqIds.length * MIN_EQ_GAP_ANGLE, Math.min(groupStep * 0.9, maxSpread));
-          const eqStep = eqIds.length > 1 ? eqSpreadCapped / (eqIds.length - 1) : 0;
-          const eqStart = subAngle - eqSpreadCapped / 2;
+          const eqsPerRing = isMobile ? 3 : 5;
+          const ringSpacing = isMobile ? 55 : 45;
 
           eqIds.forEach((eqId, ei) => {
-            const eqAngle = eqIds.length === 1 ? subAngle : eqStart + eqStep * ei;
-            // Stagger radius slightly to avoid label collision
-            const stagger = (ei % 2 === 0 ? 0 : 22) + (gi % 2 === 0 ? 0 : 12);
-            const r = DYNAMIC_TOPIC_R + SUB_RING_OFFSET + DYNAMIC_EQ_R_OFFSET + stagger;
+            const ringIndex = Math.floor(ei / eqsPerRing);
+            const indexInRing = ei % eqsPerRing;
+            const eqsInThisRing = Math.min(eqsPerRing, eqIds.length - ringIndex * eqsPerRing);
+
+            // Determine spread for THIS ring
+            const actualSpread = Math.min(groupStep * 0.9, Math.max(0.1, (eqsInThisRing - 1) * MIN_EQ_GAP_ANGLE));
+            const eqStep = eqsInThisRing > 1 ? actualSpread / (eqsInThisRing - 1) : 0;
+            const eqStart = subAngle - actualSpread / 2;
+            const eqAngle = eqsInThisRing === 1 ? subAngle : eqStart + eqStep * indexInRing;
+
+            // Stagger radius dramatically per ring level so they go outward (longer, not wider)
+            const r = DYNAMIC_TOPIC_R + SUB_RING_OFFSET + DYNAMIC_EQ_R_OFFSET + (ringIndex * ringSpacing);
             const ex = CENTER.x + r * Math.cos(eqAngle);
             const ey = CENTER.y + r * Math.sin(eqAngle);
 
@@ -230,15 +230,20 @@ function computeLayout(expandedTopics, isMobile = false) {
         });
       } else {
         // Direct Fan
-        // Again, enforce minimum gap
-        const directSpread = Math.max(spread, validEqs.length * MIN_EQ_GAP_ANGLE);
-        const eqStep = validEqs.length > 1 ? directSpread / (validEqs.length - 1) : 0;
-        const eqStart = centerAngle - directSpread / 2;
+        const eqsPerRing = isMobile ? 4 : 7;
+        const ringSpacing = isMobile ? 60 : 50;
 
         validEqs.forEach((eqId, ei) => {
-          const eqAngle = validEqs.length === 1 ? centerAngle : eqStart + eqStep * ei;
-          const stagger = ei % 2 === 0 ? 0 : 25;
-          const r = DYNAMIC_TOPIC_R + DYNAMIC_EQ_R_OFFSET + 30 + stagger;
+          const ringIndex = Math.floor(ei / eqsPerRing);
+          const indexInRing = ei % eqsPerRing;
+          const eqsInThisRing = Math.min(eqsPerRing, validEqs.length - ringIndex * eqsPerRing);
+
+          const directSpread = Math.min(spread, Math.max(0.1, (eqsInThisRing - 1) * MIN_EQ_GAP_ANGLE));
+          const eqStep = eqsInThisRing > 1 ? directSpread / (eqsInThisRing - 1) : 0;
+          const eqStart = centerAngle - directSpread / 2;
+          const eqAngle = eqsInThisRing === 1 ? centerAngle : eqStart + eqStep * indexInRing;
+          
+          const r = DYNAMIC_TOPIC_R + DYNAMIC_EQ_R_OFFSET + (ringIndex * ringSpacing);
           const ex = CENTER.x + r * Math.cos(eqAngle);
           const ey = CENTER.y + r * Math.sin(eqAngle);
 
@@ -374,12 +379,13 @@ export default function NetworkGraph() {
 
   const handlePointerMove = useCallback((e) => {
     if (!isPanning) return;
+    const sens = isMobile ? 1.8 : 1.0;
     setTransform((prev) => ({
       ...prev,
-      x: panStartRef.current.tx + (e.clientX - panStartRef.current.x),
-      y: panStartRef.current.ty + (e.clientY - panStartRef.current.y),
+      x: panStartRef.current.tx + (e.clientX - panStartRef.current.x) * sens,
+      y: panStartRef.current.ty + (e.clientY - panStartRef.current.y) * sens,
     }));
-  }, [isPanning]);
+  }, [isPanning, isMobile]);
 
   const handlePointerUp = useCallback(() => setIsPanning(false), []);
 
